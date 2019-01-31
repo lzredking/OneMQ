@@ -145,6 +145,8 @@ public class RemotingClientStarter {
 		boolean ok=Tio.send(clientChannelContext, packet);
 		if(!ok) {
 			SendCache.addRertyMsgs(message.get_id(), message);
+		}else {
+			SendCache.addSendMsgs(message);
 		}
 		return ok;
 	}

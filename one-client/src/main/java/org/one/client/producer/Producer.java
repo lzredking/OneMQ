@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -58,6 +59,14 @@ public class Producer {
 
 	public void start() {
 		//从配置文件读 onemq.regster.server=127.0.0.1:6666,127.0.0.1:6667
+		
+		init();
+		
+		registerProducer();
+		
+		new CheckBroker(this).start(RequestType.PRODUCER);
+	}
+	void init() {
 		String ip="127.0.0.1";
 		int port=6666;
 		if(StringUtils.isNotBlank(registerServer)) {
@@ -81,16 +90,11 @@ public class Producer {
 		}else {
 			throw new OneMQException(-1, "请配置 registerServer,如[onemq.regster.server=127.0.0.1:6666,127.0.0.1:6667]");
 		}
-		
-		
-		registerProducer();
-		
-		new CheckBroker(this).start(RequestType.PRODUCER);
 	}
 	/**
 	 * 断线后重试
 	 */
-	void registerProducer() {
+	public void registerProducer() {
 		try {
 			
 			OneClient client=new OneClient();
@@ -140,8 +144,13 @@ public class Producer {
 			
 		}
 //		System.out.println(i);
+		int next=0;
+		if(brokerChannels.size()>1) {
+			Random rd=new Random();
+			next=rd.nextInt(brokerChannels.size()-1);
+		}
 		//选择发给谁
-		ClientChannelContext channel=(ClientChannelContext) brokerChannels.get(0);
+		ClientChannelContext channel=(ClientChannelContext) brokerChannels.get(next);
 //		if(ClientInfo.getBrokers().isEmpty()) {
 //			registerProkucer();
 //		}
@@ -153,21 +162,16 @@ public class Producer {
 		}
 		if(this.msgTanscationListener!=null) {
 			msg.setTranscation(1);
-//			Map<String, ChannelContext> tanscatChans=ClientInfo.getTanscationChannels();
-//			for(ChannelContext channel2:tanscatChans.values()) {
-//				OneMessage msg2=new OneMessage(this.getTopic(), null);
-//				ClientUtil.sendTansctionMessage(channel2, msg2);
-//			}
 		}
 		
 		if(msgConfirmListener!=null) {
 			msg.setConfirm(1);
-			SendCache.addRertyMsgs(msg.get_id(), msg);
-			handlerFailedMsg(channel);
-			return false;//RemotingClientStarter.sendMessage(channel, msg);
+//			SendCache.addRertyMsgs(msg.get_id(), msg);
+////			handlerFailedMsg(channel);
+//			return RemotingClientStarter.sendMessage(channel, msg);
 		}else {
-			return RemotingClientStarter.sendMessage(channel, msg);
 		}
+		return RemotingClientStarter.sendMessage(channel, msg);
 	}
 	
 	/**
@@ -193,6 +197,7 @@ public class Producer {
 		List<String> olds=new ArrayList<>();
 		Set<Entry<String, OneMessage>> ents=SendCache.getRertyMsgs().entrySet();
 		System.out.println(SendCache.getSize()+" ==没发送消息== "+ents.size());
+		
 		for(Entry<String, OneMessage> ent:ents) {
 //			System.out.println(ent.getValue());
 			boolean ok;
@@ -207,7 +212,6 @@ public class Producer {
 		}
 		System.out.println("send failed msg size: "+SendCache.getRertyMsgs().size());
 		for(String id:olds) {
-			SendCache.addSendMsgs(SendCache.getRertyMsgs().get(id));
 			SendCache.removeRertyMsgs(id);
 		}
 	}
@@ -287,7 +291,7 @@ public class Producer {
 			public void confirm(String id) {
 				// 发送成功的消息
 				sendOK.incrementAndGet();
-				
+//				System.out.println(id);
 				System.out.println("确认发送成功："+SendCache.getSendMsgs().size());
 			}
 		});
@@ -297,8 +301,8 @@ public class Producer {
 			public void tanscation(List<MsgInfo> id) {
 				// 消费成功
 				resNum.addAndGet(id.size());
-				System.out.println(id);
-				System.out.println(resNum.get()+" 确认消费成功："+id.size());
+//				System.out.println(id);
+//				System.out.println(resNum.get()+" 确认消费成功："+id.size());
 				System.out.println("发送成功数："+sendOK.get()+"--"+sendNum.get()+" 没收到事务消息数："+(sendNum.get()-resNum.get()));
 			}
 		});
@@ -317,15 +321,17 @@ public class Producer {
 							long num=sendNum.addAndGet(1);
 							
 							boolean ok=producer.sendMessage("test");
-							System.out.println(num+"--消息发送："+ok);
 						}
+						System.out.println(sendNum.get()+"--消息发送完毕：");
 						System.out.println("没收到事务消息数--"+(sendNum.get()-resNum.get()));
 						long e=System.currentTimeMillis();
 						System.out.println("时间："+(e-s));
-						if(sendNum.get()>resNum.get())
-							Thread.sleep(1000*30);
+						if((sendNum.get())>10000000) {
+//							Thread.sleep(1000*60);
+//						}else
 //						if(c==5)
-//							break;
+							break;}
+							Thread.sleep(1000*1);
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

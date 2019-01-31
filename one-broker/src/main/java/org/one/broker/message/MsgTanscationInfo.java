@@ -172,7 +172,7 @@ public class MsgTanscationInfo {
 //		int i=1;
 		for(MsgInfo msg:msgs) {
 			addTansMsgIds(msg);
-//			System.out.println(i+++"=="+msg.getId());
+//			System.out.println("=="+msg.getId());
 		}
 //		System.out.println(tansSize.get()+" ==addTansMsgIds == "+getTansMsgSize("topic-1"));
 //		if(tansSize.get()>getTansMsgSize("topic-1")) {
@@ -187,6 +187,7 @@ public class MsgTanscationInfo {
 	}
 	public static long getTansMsgSize(String topic) {
 //		String topic=getMsgIdTopic(id);
+		System.out.println(tansSize.get());
 		if(tansMsgIds.get(topic)==null)return 0L;
 		return tansMsgIds.get(topic).size();
 	}

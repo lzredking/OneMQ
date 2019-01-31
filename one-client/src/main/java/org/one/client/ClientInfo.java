@@ -27,7 +27,7 @@ public class ClientInfo {
 	//Broker通道,brokerName+Channel
 	private static Map<String,ChannelContext> brokerChannels = new HashMap<>(10); 
 	//Broker通道,brokerName+Channel
-	private static Map<String,ChannelContext> tanscationChannels = new HashMap<>(10); 
+	private static Map<String,List<ChannelContext>> tanscationChannels = new HashMap<>(10); 
 	//所有在线Broker,brokerName+OneBroker
 	private static Map<String,OneBroker> brokers=new HashMap<>(10);
 	//消费队列,队列名+Broker列表
@@ -144,7 +144,7 @@ public class ClientInfo {
 		ClientInfo.listener = listener;
 	}
 
-	public static Map<String, ChannelContext> getTanscationChannels() {
+	public static Map<String, List<ChannelContext>> getTanscationChannels() {
 		return tanscationChannels;
 	}
 
@@ -154,7 +154,12 @@ public class ClientInfo {
 	 * @param brokerChannel
 	 */
 	public static void addTanscationChannels(String brokerName,ClientChannelContext brokerChannel) {
-		ClientInfo.tanscationChannels.put(brokerName, brokerChannel);
+		List<ChannelContext> channes=ClientInfo.tanscationChannels.get(brokerName);
+		if(channes==null) {
+			channes=new ArrayList<>();
+		}
+		channes.add(brokerChannel);
+		ClientInfo.tanscationChannels.put(brokerName, channes);
 	}
 	
 	

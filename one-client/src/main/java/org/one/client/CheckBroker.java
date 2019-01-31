@@ -3,19 +3,15 @@
  */
 package org.one.client;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.one.client.consumer.Consumer;
 import org.one.client.producer.Producer;
-import org.one.remote.cmd.Command;
-import org.one.remote.cmd.OneConsumer;
 import org.one.remote.cmd.OneMessage;
 import org.one.remote.common.OneBroker;
-import org.one.remote.common.enums.RequestType;
 import org.tio.core.ChannelContext;
-import org.tio.core.Tio;
 
 /**检查Broker连接状态
  * @author yangkunguo
@@ -46,7 +42,7 @@ public class CheckBroker {
 					}
 					
 					Map<String, ChannelContext> chans=ClientInfo.getBrokerChannelsMap();
-					Map<String, ChannelContext> tanscatChans=ClientInfo.getTanscationChannels();
+					Map<String, List<ChannelContext>> tanscatChans=ClientInfo.getTanscationChannels();
 					Collection<OneBroker> brokers=ClientInfo.getBrokers().values();
 					System.out.println("check borker...size..."+brokers.size());
 					
@@ -54,28 +50,40 @@ public class CheckBroker {
 					long time=System.currentTimeMillis();
 					for(OneBroker broker:brokers) {
 						ChannelContext channel=chans.get(broker.getBrokerName());
-						ChannelContext channel2=tanscatChans.get(broker.getBrokerName());
+						List<ChannelContext> channel2=tanscatChans.get(broker.getBrokerName());
 						System.out.println(channel+"...check borker channel isClosed..."+channel.isClosed);
-						if(chans.get(broker.getBrokerName()).isClosed) {
-							System.out.println("尝试重连下线Broker...");
-							if(obj instanceof Consumer) {
-								ClientUtil.send(channel, new OneConsumer(((Consumer) obj).getTopic()));
-							}else if(obj instanceof Producer) {
-								ClientUtil.sendNullMessage(channel, new OneMessage(((Producer) obj).getTopic(),null));
-								//Tascation
-								Producer producer=(Producer) obj;
-								if(producer.getMsgTanscationListener()!=null) {
-									OneMessage msg=new OneMessage(producer.getTopic(), null);
-									ClientUtil.sendTansctionMessage(channel2, msg);
-								}
-							}
-							
-						}
-						//
-						else{
+//						if(chans.get(broker.getBrokerName()).isClosed) {
+//							System.out.println("尝试重连下线Broker...");
+//							if(obj instanceof Consumer) {
+//								ClientUtil.send(channel, new OneConsumer(((Consumer) obj).getTopic()));
+//							}else if(obj instanceof Producer) {
+//								ClientUtil.sendNullMessage(channel, new OneMessage(((Producer) obj).getTopic(),null));
+//								//Tascation
+//								Producer producer=(Producer) obj;
+//								if(producer.getMsgTanscationListener()!=null) {
+//									OneMessage msg=new OneMessage(producer.getTopic(), null);
+//									ClientUtil.sendTansctionMessage(channel2, msg);
+//								}
+//							}
+//							
+//						}
+//						else
+						{
 							
 							if(channel==null || channel.isClosed) {
 								ClientInfo.removeBroker(broker);
+								if(obj instanceof Consumer) {
+									Consumer consumer=(Consumer) obj;
+									try {
+										consumer.registerConsumer();
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+//									ClientUtil.send(channel, new OneConsumer(((Consumer) obj).getTopic()));
+								}else if(obj instanceof Producer) {
+									Producer producer=(Producer) obj;
+									producer.registerProducer();
+								}
 								continue;
 							}
 							if(obj instanceof Consumer) {
@@ -88,7 +96,9 @@ public class CheckBroker {
 								//Tascation
 								if(producer.getMsgTanscationListener()!=null) {
 									OneMessage msg=new OneMessage(producer.getTopic(), null);
-									ClientUtil.sendTansctionMessage(channel2, msg);
+									for(ChannelContext channelContext:channel2) {
+										ClientUtil.sendTansctionMessage(channelContext, msg);
+									}
 								}
 							}
 //							Command command = new Command();
@@ -106,22 +116,22 @@ public class CheckBroker {
 //							Tio.send(chans.get(broker.getBrokerName()), command);
 						}
 						
-						if(time>(broker.getLastTime()+1000*60)) {
-							//删除下线Broker
-							if(chans.get(broker.getBrokerName()).isClosed) {
-								System.out.println("删除下线Broker...");
-								ClientInfo.removeBroker(broker);
-								if(obj instanceof Consumer) {
-									Consumer consumer=(Consumer) obj;
-									try {
-										consumer.registerConsumer();
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							}
-							//转移Broker里的消息
-						}
+//						if(time>(broker.getLastTime()+1000*60)) {
+//							//删除下线Broker
+//							if(chans.get(broker.getBrokerName()).isClosed) {
+//								System.out.println("删除下线Broker...");
+//								ClientInfo.removeBroker(broker);
+//								if(obj instanceof Consumer) {
+//									Consumer consumer=(Consumer) obj;
+//									try {
+//										consumer.registerConsumer();
+//									} catch (Exception e) {
+//										e.printStackTrace();
+//									}
+//								}
+//							}
+//							//转移Broker里的消息
+//						}
 					}
 				}
 				

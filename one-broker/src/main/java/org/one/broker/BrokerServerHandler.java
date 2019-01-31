@@ -48,19 +48,20 @@ import com.one.store.file.MappedFile;
  */
 public class BrokerServerHandler extends RemotingServerHandler{
 
-	public BrokerServerHandler(BrokerStore brokerStore) {
-		super();
-		this.brokerStore = brokerStore;
-	}
 
 	private static Logger log=LoggerFactory.getLogger(BrokerServerHandler.class);
 	
 	private AtomicBoolean isPush=new AtomicBoolean(false);
 	
 	private AtomicLong tansNum=new AtomicLong(0);
+	private AtomicLong msgcount=new AtomicLong(0);
 	
 	private BrokerStore brokerStore;
 	
+	public BrokerServerHandler(BrokerStore brokerStore) {
+		super();
+		this.brokerStore = brokerStore;
+	}
 	/* (non-Javadoc)
 	 * @see org.one.remote.server.RemotingServerHandler#handler(org.tio.core.intf.Packet, org.tio.core.ChannelContext)
 	 */
@@ -72,30 +73,30 @@ public class BrokerServerHandler extends RemotingServerHandler{
         try {
         	if (body != null) {
         		String str = new String(body, Command.CHARSET);
-//            log.info(reqtype+"--收到消息：" + str);
+//        		System.out.println(reqtype+"--收到消息：" + str);
         		//
         		if(reqtype == RequestType.PRODUCER) {
         			OneMessage msg=Json.toBean(str, OneMessage.class);
-        			Map<String, Map<String, OneMessage>> map=CacheMsg.getCacheTopicMsg();
-        			Map<String, Map<String,MsgInfo>> mapc=MsgTanscationInfo.getTansMsgIds();
-        			System.out.println("收到消息事务请求--"+MsgTanscationInfo.getTansMsgSize(msg.getTopic())
-        			+"-没返回事务数："+MsgTanscationInfo.getMsgSize());
-        			System.out.println("--当前消息总数量："+CacheMsg.getSize()+"--已经返回消息数: "+tansNum.get());
+//        			Map<String, Map<String, OneMessage>> map=CacheMsg.getCacheTopicMsg();
+//        			Map<String, Map<String,MsgInfo>> mapc=MsgTanscationInfo.getTansMsgIds();
+//        			System.out.println("收到消息事务请求--"+MsgTanscationInfo.getTansMsgSize(msg.getTopic())
+//        			+"-没返回事务数："+MsgTanscationInfo.getMsgSize());
+        			System.out.println(msgcount.get()+" <==当前消息总数量："+CacheMsg.getSize()+"--已经返回消息数: "+tansNum.get()+" 没返回事务数:"+MsgTanscationInfo.getMsgSize());
         			if(CacheMsg.getSize()==0) {
 //        				System.out.println(mapc);
 //        				MsgTanscationInfo.getMsgIdTopic(id)
 //        				System.out.println(MsgTanscationInfo.getTansMsgSize(msg.getTopic()));
-        				System.out.println(MsgTanscationInfo.getTansMsgIds(msg.getTopic(), 10));
+//        				System.out.println(MsgTanscationInfo.getTansMsgIds(msg.getTopic(), 10));
         			}
         			//如果有堆积的异常事务消息，在此消化
-        			new TanscationMessage().confirmTanscation(channelContext, msg.getTopic());
+        			TanscationMessage.confirmTanscation(channelContext, msg.getTopic());
         		}
         		//接收生产者消息
         		else if(reqtype == RequestType.MESSAGE) {
 //        			if("ok".equals(str))return;
-        			System.out.println(DateUtils.formatDateTime(new Date())+"=="+str);
+//        			System.out.println(DateUtils.formatDateTime(new Date())+"=="+str);
         			saveMsg(channelContext, str);
-        			
+        			msgcount.addAndGet(1);
         		}
         		//发送消息给消费者
         		else if(reqtype == RequestType.CONSUMMER) {
@@ -177,22 +178,6 @@ public class BrokerServerHandler extends RemotingServerHandler{
     	}else {
     		//一条
     		if(cons.getReadSize()==null) {
-//    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic());
-//    			if(!msgs.isEmpty()) {
-//    				Iterator<OneMessage> ite=msgs.iterator();
-//    				while(ite.hasNext()) {
-//    					OneMessage msg= ite.next();
-//    					//检查是否消费过
-////    					if(!ConsumerLog.getLogs(consumer, msg.getTopic(), msg.get_id())) {
-////    					}
-//    					if(msg!=null) {
-//    						omsg.add(msg);
-//    					}
-//    					ConsumerLog.addLogs(consumer, msg);
-//    					CacheMsg.removeCacheMsg(msg);
-//    					break;
-//    				}
-//    			}
     			cons.setReadSize(1);
     		}//else 
     		{//多条
@@ -205,7 +190,7 @@ public class BrokerServerHandler extends RemotingServerHandler{
     						if(size==cons.getReadSize())break;
     						
 //    						msg=this.brokerStore.readMessage(cons.getTopic(), msg.get_id());
-    						System.out.println(msgs.size()+" = "+msg);
+//    						System.out.println(msgs.size()+" = "+msg);
     						if(msg!=null) {
     							omsg.add(msg);
     							ConsumerLog.addLogs(consumer, msg);

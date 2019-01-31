@@ -63,7 +63,6 @@ public class CacheMsg {
 		Map<String,OneMessage> msgs=cacheTopicMsg.get(topic);
 		OneMessage msg=msgs.get(id);
 		msg.setReadNumber(msg.getReadNumber()+1);
-//		size.addAndGet(1);
 		return msg;
 	}
 

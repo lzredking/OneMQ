@@ -25,14 +25,14 @@ import org.tio.utils.json.Json;
  */
 public class TanscationMessage {
 
-	private ReentrantLock lock=new ReentrantLock();
+	private static ReentrantLock lock=new ReentrantLock();
 	
 	/**
 	 * @param channelContext
 	 * @param id
 	 * @throws UnsupportedEncodingException
 	 */
-	public void tanscationMsg(ChannelContext channelContext,final Set<MsgInfo> ids)  {
+	private static void tanscationMsg(ChannelContext channelContext,final Set<MsgInfo> ids)  {
 //		new Thread(new Runnable() {
 //			
 //			@Override
@@ -92,9 +92,9 @@ public class TanscationMessage {
 	 * @param channelContext
 	 * @param topic
 	 */
-	public void confirmTanscation(ChannelContext channelContext,String topic) {
+	public static void confirmTanscation(ChannelContext channelContext,String topic) {
 		
-//		lock.lock();
+		lock.lock();
 		try {
 			Set<MsgInfo> ids=MsgTanscationInfo.getTansMsgIds(topic, 50);
 			System.out.println(MsgTanscationInfo.getTansMsgSize(topic)+"  msgs.size()="+ids.size());
@@ -114,7 +114,7 @@ public class TanscationMessage {
 		}catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-//			lock.unlock();
+			lock.unlock();
 		}
 	}
 }

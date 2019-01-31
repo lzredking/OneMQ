@@ -39,7 +39,7 @@ public class RemotingServerStarter {
 	public static TioServer start(ServerAioHandler aioHandler,ServerAioListener aioListener,Node node) throws IOException {
 		
 		ServerGroupContext serverGroupContext = new ServerGroupContext(aioHandler, aioListener);
-		serverGroupContext.setHeartbeatTimeout(1000*30);//30s一次心跳
+//		serverGroupContext.setHeartbeatTimeout(1000*5);//30s一次心跳
 		TioServer tioServer = new TioServer(serverGroupContext); //可以为空
 		tioServer.start(node.getIp(), node.getPort());
 		

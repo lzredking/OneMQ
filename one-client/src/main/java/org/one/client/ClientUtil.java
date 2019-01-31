@@ -5,7 +5,9 @@ package org.one.client;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Map;
 
+import org.one.client.producer.Producer;
 import org.one.remote.cmd.Command;
 import org.one.remote.cmd.OneConsumer;
 import org.one.remote.cmd.OneMessage;
@@ -87,9 +89,11 @@ public class ClientUtil {
 	 * @return
 	 */
 	public static boolean sendTansctionMessage(ChannelContext channelContext, OneMessage msg) {
+//		System.out.println(msg);
 		Command packet = new Command();
 		packet.setReqType(RequestType.PRODUCER);
 		msg.setBody(null);
+		msg.set_id(null);
 		String json=Json.toJson(msg);
 		try {
 			packet.setBody(json.getBytes(Command.CHARSET));
@@ -98,5 +102,20 @@ public class ClientUtil {
 		}
 		return Tio.send(channelContext, packet);
 		
+	}
+	
+	public static void reqTanscationMsg(ChannelContext channelContext,Producer producer) {
+		if(producer.getMsgTanscationListener()!=null) {
+			OneMessage msg=new OneMessage(producer.getTopic(), null);
+			Map<String, List<ChannelContext>> tanscatChans=ClientInfo.getTanscationChannels();
+			for(List<ChannelContext> channelContexts :tanscatChans.values()) {
+				for(ChannelContext channelContext2:channelContexts) {
+					ClientUtil.sendTansctionMessage(channelContext2, msg);
+	//				if(channelContext.getServerNode().equals(channelContext2.getServerNode())) {
+	////					System.out.println("--------------------------------------------------------------"+channelContext2);
+	//				}
+				}
+			}	
+		}
 	}
 }

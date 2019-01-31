@@ -3,6 +3,7 @@
  */
 package org.one.client.producer;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.one.client.ClientInfo;
@@ -10,6 +11,7 @@ import org.one.client.ClientUtil;
 import org.one.remote.cmd.Command;
 import org.one.remote.cmd.OneMessage;
 import org.one.remote.common.enums.RequestType;
+import org.one.remote.producer.SendCache;
 import org.tio.client.intf.ClientAioListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
@@ -24,8 +26,8 @@ public class ProducerClientAioListener implements ClientAioListener{
 	private Producer producer;
 	
 	private MsgConfirmListener msgConfirmListener;
-	
-	private MsgTanscationListener msgTanscationListener;
+//	
+//	private MsgTanscationListener msgTanscationListener;
 	
 	private AtomicLong retryNum= new AtomicLong();
 	
@@ -96,9 +98,14 @@ public class ProducerClientAioListener implements ClientAioListener{
 				if(cmd.getBody()!=null) {
 					String id = new String(cmd.getBody(), Command.CHARSET);
 					msgConfirmListener.confirm(id);
+					SendCache.getSendMsgs().remove(id);
 				}
 			}
+			ClientUtil.reqTanscationMsg(channelContext,producer) ;
 		}
+//		if(cmd.getBody()==null) {
+//			Thread.sleep(1000);
+//		}
 //		if(cmd.getReqType()==RequestType.MSG_TANSCATION) {
 //			//返回消息给消费者
 //			msgTanscationListener=producer.getMsgTanscationListener();
@@ -118,7 +125,7 @@ public class ProducerClientAioListener implements ClientAioListener{
 	public void onBeforeClose(ChannelContext channelContext, Throwable throwable, String remark, boolean isRemove)
 			throws Exception {
 		System.out.println("此连接正在关闭 :"+ channelContext.toString());
-		Thread.sleep(1000*10);
+//		Thread.sleep(1000*10);
 		producer.registerProducer();
 	}
 	

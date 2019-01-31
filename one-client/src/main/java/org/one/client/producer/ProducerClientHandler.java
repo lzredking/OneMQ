@@ -40,7 +40,7 @@ public class ProducerClientHandler extends RemotingClientHandler{
 		byte[] body = cmd.getBody();
 		if (body != null) {
             String json = new String(body, Command.CHARSET);
-//            System.out.println(json);
+            System.out.println(json);
             //注册服务返回Broker列表
             if(cmd.getReqType().equals(RequestType.PRODUCER)) {
 //            	List<OneBroker> brokers=Json.toBean(json, tt)
@@ -73,16 +73,30 @@ public class ProducerClientHandler extends RemotingClientHandler{
             			ClientAioListener listener=new TanscationClientAioListener(producer);
             			//发送
             			ClientChannelContext brokerChannel = RemotingClientStarter.start(new ProducerClientHandler(producer),
-//            					new ProducerClientAioListener(producer)
-            					listener
+            					new ProducerClientAioListener(producer)
+//            					listener
             					,brokerNode);
             			ClientInfo.addBrokerChannel(broker.getBrokerName(),brokerChannel);
-            			//接收
-            			ClientChannelContext brokerChannel2=RemotingClientStarter.start(new ProducerClientHandler(producer),
-            					listener,brokerNode);
-            			ClientInfo.addTanscationChannels(broker.getBrokerName(), brokerChannel2);
-            		}else if(oldbrokerChannel.isClosed){
+            			System.out.println(brokerChannel);
             			
+            			//接收
+            			System.out.println(ClientInfo.getTanscationChannels().get(broker.getBrokerName()));
+            			if(ClientInfo.getTanscationChannels().get(broker.getBrokerName())==null 
+            					|| ClientInfo.getTanscationChannels().get(broker.getBrokerName()).size()<=3) {
+            				
+            				ClientChannelContext brokerChannel2=RemotingClientStarter.start(new ProducerClientHandler(producer),
+            						listener
+            						,brokerNode);
+            				ClientInfo.addTanscationChannels(broker.getBrokerName(), brokerChannel2);
+          			
+            				ClientChannelContext brokerChannel3=RemotingClientStarter.start(new ProducerClientHandler(producer),
+            						listener
+            						,brokerNode);
+            				ClientInfo.addTanscationChannels(broker.getBrokerName(), brokerChannel3);
+            				System.out.println(brokerChannel2);
+            			}
+            		}else if(oldbrokerChannel.isClosed){
+//            			
             		}
             	}
             }

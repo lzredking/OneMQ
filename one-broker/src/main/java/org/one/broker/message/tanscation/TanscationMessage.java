@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.one.broker.BrokerServerHandler;
 import org.one.broker.BrokerStart;
 import org.one.broker.message.MsgTanscationInfo;
 import org.one.remote.cmd.Command;
@@ -92,16 +93,17 @@ public class TanscationMessage {
 	 * @param channelContext
 	 * @param topic
 	 */
-	public static void confirmTanscation(ChannelContext channelContext,String topic) {
+	public void confirmTanscation(ChannelContext channelContext,String topic) {
 		
 		lock.lock();
 		try {
 			Set<MsgInfo> ids=MsgTanscationInfo.getTansMsgIds(topic, 50);
-			System.out.println(MsgTanscationInfo.getTansMsgSize(topic)+"  msgs.size()="+ids.size());
-			if(ids.size()<10) {
-				Thread.sleep(500);
-				ids=MsgTanscationInfo.getTansMsgIds(topic, 50);
-			}
+//			System.out.println(MsgTanscationInfo.getTansMsgSize(topic)+"  msgs.size()="+ids.size());
+//			if(ids.size()<10) {
+//				Thread.sleep(500);
+//				ids=MsgTanscationInfo.getTansMsgIds(topic, 50);
+//			}
+			
 //			List<MsgInfo> ids=new ArrayList<>(50);
 //			for(MsgInfo id:msgs) {
 //				ids.add(id);

@@ -102,11 +102,11 @@ public class ConsumerClientAioListener implements ClientAioListener{
 					String json = new String(cmd.getBody(), Command.CHARSET);
 					List<OneMessage> msgs=JSONArray.parseArray(json, OneMessage.class);
 //					System.out.println(msgs.size()+".............."+consumer.getReadSize());
-					if(msgs.size()<consumer.getReadSize()) {
-						sleep=1000;
-					}else {
-						sleep=0;
-					}
+//					if(msgs.size()<consumer.getReadSize()) {
+//						sleep=1000;
+//					}else {
+//						sleep=0;
+//					}
 					List<OneConsumer> cons=new ArrayList<>();
 					OneConsumer oneConsumer=null;
 					for(OneMessage msg:msgs) {

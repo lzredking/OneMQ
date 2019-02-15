@@ -121,7 +121,7 @@ public class Producer {
 		}
 	}
 	
-	public boolean sendMessage(Object data) throws Exception{
+	public OneMessage sendMessage(Object data) throws Exception{
 		return sendMessage( data,null);
 	}
 	/**消息发送
@@ -129,14 +129,14 @@ public class Producer {
 	 * @return true 成功 false 失败
 	 * @throws Exception
 	 */
-	public boolean sendMessage(Object data,String id) throws Exception {
+	public OneMessage sendMessage(Object data,String id) throws Exception {
 		List<ChannelContext> brokerChannels=new ArrayList<>();
 		int i=0;
 		brokerChannels=getBrokerChannels();
 		while(brokerChannels.isEmpty()) {
 			if(i==100) {
 				registerProducer();
-				return false;//无Broker列表
+				return null;//无Broker列表
 			}
 			Thread.sleep(1000);
 			brokerChannels=getBrokerChannels();
@@ -171,7 +171,7 @@ public class Producer {
 //			return RemotingClientStarter.sendMessage(channel, msg);
 		}else {
 		}
-		return RemotingClientStarter.sendMessage(channel, msg);
+		return RemotingClientStarter.sendMessage(channel, msg)?msg:null;
 	}
 	
 	/**
@@ -196,7 +196,7 @@ public class Producer {
 	public void handlerFailedMsg(ChannelContext channelContext) {
 		List<String> olds=new ArrayList<>();
 		Set<Entry<String, OneMessage>> ents=SendCache.getRertyMsgs().entrySet();
-		System.out.println(SendCache.getSize()+" ==没发送消息== "+ents.size());
+		System.out.println(SendCache.getRertyMsgsSize()+" ==没发送消息== "+ents.size());
 		
 		for(Entry<String, OneMessage> ent:ents) {
 //			System.out.println(ent.getValue());
@@ -274,73 +274,5 @@ public class Producer {
 		return this;
 	}
 
-	private static AtomicLong sendNum= new AtomicLong(0);
-	private static AtomicLong sendOK= new AtomicLong(0);
-	private static AtomicLong resNum= new AtomicLong(0);
-	/**测试
-	 * @param s
-	 */
-	public static void main(String []s) {
-		Producer producer=new Producer("producer-1");
-		producer.setTopic("topic-1");
-		producer.setRegisterServer("127.0.0.1:6666");
-//		producer.setTanscation(true);
-		producer.setMsgConfirmListener(new MsgConfirmListener() {
-			
-			@Override
-			public void confirm(String id) {
-				// 发送成功的消息
-				sendOK.incrementAndGet();
-//				System.out.println(id);
-				System.out.println("确认发送成功："+SendCache.getSendMsgs().size());
-			}
-		});
-		producer.setMsgTanscationListener(new MsgTanscationListener() {
-			
-			@Override
-			public void tanscation(List<MsgInfo> id) {
-				// 消费成功
-				resNum.addAndGet(id.size());
-//				System.out.println(id);
-//				System.out.println(resNum.get()+" 确认消费成功："+id.size());
-				System.out.println("发送成功数："+sendOK.get()+"--"+sendNum.get()+" 没收到事务消息数："+(sendNum.get()-resNum.get()));
-			}
-		});
-		producer.start();
-		
-		Thread th=new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				int c=0;
-				while(true) {
-					long s=System.currentTimeMillis();
-					try {
-						for(int i=0;i<100;i++) {
-							
-							long num=sendNum.addAndGet(1);
-							
-							boolean ok=producer.sendMessage("test");
-						}
-						System.out.println(sendNum.get()+"--消息发送完毕：");
-						System.out.println("没收到事务消息数--"+(sendNum.get()-resNum.get()));
-						long e=System.currentTimeMillis();
-						System.out.println("时间："+(e-s));
-						if((sendNum.get())>10000000) {
-//							Thread.sleep(1000*60);
-//						}else
-//						if(c==5)
-							break;}
-							Thread.sleep(1000*1);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					c++;
-				}
-				
-			}
-		});
-		th.start();
-	}
+	
 }

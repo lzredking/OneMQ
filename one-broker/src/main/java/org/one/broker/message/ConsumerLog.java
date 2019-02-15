@@ -1,6 +1,7 @@
 package org.one.broker.message;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,12 +22,12 @@ public class ConsumerLog {
 	 * @param id
 	 * @return
 	 */
-	public static boolean getLogs(String client, String tipic, String id) {
+	public static OneMessage getLogs(String client, String tipic, String id) {
 		Map<String,OneMessage> msgs=logs.get(client);
 		if(msgs!=null) {
-			return msgs.containsKey(tipic+"-"+id);
+			return msgs.get(tipic+"-"+id);
 		}
-		return false;
+		return null;
 	}
 
 	/**消费记录
@@ -43,6 +44,10 @@ public class ConsumerLog {
 		ConsumerLog.logs.put(client, msgs);
 	}
 	
+	public static void addLogs(String client, List<OneMessage> msgs) {
+		for(OneMessage msg:msgs)
+			addLogs(client,msg);
+	}
 	/**删除记录
 	 * @param client
 	 * @param tipic

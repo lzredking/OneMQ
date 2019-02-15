@@ -146,7 +146,7 @@ public class RemotingClientStarter {
 		if(!ok) {
 			SendCache.addRertyMsgs(message.get_id(), message);
 		}else {
-			SendCache.addSendMsgs(message);
+//			SendCache.addSendMsgs(message);
 		}
 		return ok;
 	}

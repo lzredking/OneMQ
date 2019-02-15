@@ -30,7 +30,7 @@ public class TanscationClientAioListener implements ClientAioListener{
 	
 	private Producer producer;
 	
-	private MsgConfirmListener msgConfirmListener;
+//	private MsgConfirmListener msgConfirmListener;
 	
 	private MsgTanscationListener msgTanscationListener;
 	

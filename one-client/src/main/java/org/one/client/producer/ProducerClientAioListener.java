@@ -3,6 +3,7 @@
  */
 package org.one.client.producer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,11 +11,14 @@ import org.one.client.ClientInfo;
 import org.one.client.ClientUtil;
 import org.one.remote.cmd.Command;
 import org.one.remote.cmd.OneMessage;
+import org.one.remote.common.broker.MsgInfo;
 import org.one.remote.common.enums.RequestType;
 import org.one.remote.producer.SendCache;
 import org.tio.client.intf.ClientAioListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
+
+import com.alibaba.fastjson.JSONArray;
 
 /**服务注册监听
  * @author yangkunguo
@@ -98,7 +102,7 @@ public class ProducerClientAioListener implements ClientAioListener{
 				if(cmd.getBody()!=null) {
 					String id = new String(cmd.getBody(), Command.CHARSET);
 					msgConfirmListener.confirm(id);
-					SendCache.getSendMsgs().remove(id);
+//					SendCache.getSendMsgs().remove(id);
 				}
 			}
 			ClientUtil.reqTanscationMsg(channelContext,producer) ;
@@ -106,17 +110,20 @@ public class ProducerClientAioListener implements ClientAioListener{
 //		if(cmd.getBody()==null) {
 //			Thread.sleep(1000);
 //		}
-//		if(cmd.getReqType()==RequestType.MSG_TANSCATION) {
+//		else if(cmd.getReqType()==RequestType.MSG_TANSCATION) {
 //			//返回消息给消费者
-//			msgTanscationListener=producer.getMsgTanscationListener();
+//			MsgTanscationListener msgTanscationListener=producer.getMsgTanscationListener();
 //			if(msgTanscationListener!=null) {
 //				if(cmd.getBody()!=null) {
-//					String id = new String(cmd.getBody(), Command.CHARSET);
-//					msgTanscationListener.tanscation(id);
+//					String json = new String(cmd.getBody(), Command.CHARSET);
+//					List<MsgInfo> ids=JSONArray.parseArray(json, MsgInfo.class);
+//					if(ids.size()>0)
+//					msgTanscationListener.tanscation(ids);
 //				}
 //			}
+//			
+//		System.out.println("-------------本次处理消息耗时，单位：毫秒   : "+cost);
 //		}
-//		System.out.println("本次处理消息耗时，单位：毫秒   : "+cost);
 	}
 
 	/* 连接关闭前触发本方法

@@ -3,9 +3,9 @@ import java.io.IOException;
 import org.one.remote.cmd.OneConsumer;
 import org.tio.utils.json.Json;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.core.JsonParseException;
+//import com.fasterxml.jackson.databind.JsonMappingException;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * 
@@ -27,19 +27,19 @@ public class Test {
 		
 		System.out.println(no);
 		
-		 ObjectMapper mapper = new ObjectMapper();
-		 try {
-			 OneConsumer no2=mapper.readValue(json, OneConsumer.class);
-			 System.out.println(no2);
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		 ObjectMapper mapper = new ObjectMapper();
+//		 try {
+//			 OneConsumer no2=mapper.readValue(json, OneConsumer.class);
+//			 System.out.println(no2);
+//		} catch (JsonParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (JsonMappingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 }

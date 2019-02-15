@@ -223,27 +223,7 @@ public class Consumer {
 		this.topic = topic;
 	}
 
-	public static void main(String []s) {
-		AtomicLong num=new AtomicLong();
-		Consumer producer=new Consumer("Consumer-1","topic-1");
-		producer.setReadSize(50);
-		producer.setRegisterServer("127.0.0.1:6666");
-		producer.messageListener(new ConsumerMsgListener() {
-			//
-			@Override
-			public Boolean onMessage(ChannelContext channelContext,List<OneMessage> msgs) {
-				if(msgs!=null) {
-//					System.out.println(channelContext.toString());
-					num.addAndGet(msgs.size());
-					System.out.println(msgs.size()+".........消息总数....."+num.get());
-					return true;
-				}
-				return false;
-			}
-		}).start();
-		
-	}
-
+	
 	public OneClient getClient() {
 		return client;
 	}

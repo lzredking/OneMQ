@@ -36,7 +36,7 @@ public class MsgTanscationInfo {
 	private static Map<String,Map<String,MsgInfo>> tansMsgIds=new ConcurrentHashMap<>(100);
 	
 	private static AtomicLong msgSize=new AtomicLong(0);
-	private static AtomicLong tansSize=new AtomicLong(0);
+	public static AtomicLong tansSize=new AtomicLong(0);
 	
 	private static final Object value=new Object();
 
@@ -140,7 +140,8 @@ public class MsgTanscationInfo {
 			if(temp!=null)temp.remove(msg.getId());
 			msgIdTopic.remove(msg.getId());
 			msgSize.decrementAndGet();
-			tansSize.decrementAndGet();
+//			tansSize.decrementAndGet();
+			tansSize.addAndGet(1);
 		}
 	}
 	
@@ -161,7 +162,6 @@ public class MsgTanscationInfo {
 		temp.put(msg.getId(),msg);
 		tansMsgIds.put(msg.getTopic(),temp);
 		msgIdTopic.put(msg.getId(),msg.getTopic());
-		tansSize.addAndGet(1);
 	}
 
 	/**
@@ -187,7 +187,7 @@ public class MsgTanscationInfo {
 	}
 	public static long getTansMsgSize(String topic) {
 //		String topic=getMsgIdTopic(id);
-		System.out.println(tansSize.get());
+//		System.out.println(tansSize.get());
 		if(tansMsgIds.get(topic)==null)return 0L;
 		return tansMsgIds.get(topic).size();
 	}

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.one.client.consumer.Consumer;
 import org.one.client.producer.Producer;
+import org.one.remote.cmd.OneConsumer;
 import org.one.remote.cmd.OneMessage;
 import org.one.remote.common.OneBroker;
 import org.tio.core.ChannelContext;
@@ -51,7 +52,7 @@ public class CheckBroker {
 					for(OneBroker broker:brokers) {
 						ChannelContext channel=chans.get(broker.getBrokerName());
 						List<ChannelContext> channel2=tanscatChans.get(broker.getBrokerName());
-						System.out.println(channel+"...check borker channel isClosed..."+channel.isClosed);
+						System.out.println(channel+"...check borker channel isClosed..."+channel==null?"true":channel.isClosed);
 //						if(chans.get(broker.getBrokerName()).isClosed) {
 //							System.out.println("尝试重连下线Broker...");
 //							if(obj instanceof Consumer) {
@@ -87,11 +88,13 @@ public class CheckBroker {
 								continue;
 							}
 							if(obj instanceof Consumer) {
-//								ClientUtil.send(channel, new OneConsumer(((Consumer) obj).getTopic()));
+								Consumer consumer=(Consumer) obj;
+								OneConsumer oneConsumer=new OneConsumer(consumer.getTopic());
+								oneConsumer.setReadSize(consumer.getReadSize());
+								ClientUtil.send(channel, oneConsumer);
 							}
 							else if(obj instanceof Producer) {
 								Producer producer=(Producer) obj;
-								ClientUtil.sendTansctionMessage(channel, new OneMessage(producer.getTopic(),null));
 								producer.handlerFailedMsg(channel);
 								//Tascation
 								if(producer.getMsgTanscationListener()!=null) {

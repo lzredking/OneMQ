@@ -45,7 +45,7 @@ public class SendCache {
 	/**
 	 * @return
 	 */
-	public static Long getSize() {
+	public static Long getRertyMsgsSize() {
 		return size.get();
 	}
 

@@ -22,6 +22,8 @@ public class ProducerDemo {
 	private static AtomicLong sendNum= new AtomicLong(0);
 	private static AtomicLong sendOK= new AtomicLong(0);
 	private static AtomicLong resNum= new AtomicLong(0);
+	
+	private static AtomicLong idNum= new AtomicLong(0);
 	/**测试
 	 * @param s
 	 */
@@ -67,8 +69,8 @@ public class ProducerDemo {
 						for(int i=0;i<100;i++) {
 							
 							long num=sendNum.addAndGet(1);
-							
-							OneMessage msg=producer.sendMessage("test");
+							idNum.addAndGet(1);
+							OneMessage msg=producer.sendMessage("test",idNum.get()+"");
 							
 							if(msg!=null) {
 								SendCache.addSendMsgs(msg);

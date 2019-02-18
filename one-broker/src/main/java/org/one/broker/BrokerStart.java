@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.one.broker.message.CacheMsg;
 import org.one.remote.client.RemotingClientStarter;
 import org.one.remote.cmd.Command;
 import org.one.remote.common.OneBroker;
@@ -87,6 +88,8 @@ public class BrokerStart {
 						brokerStore.stop();
 				}
 	        }));
+	        //
+	        CacheMsg.initCacheTopic();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("注册服务启动失败。。。");

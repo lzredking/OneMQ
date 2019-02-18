@@ -54,8 +54,9 @@ public class BrokerCahceMsgHandler implements BrokerHandler{
 		//检查是否注册过
 //		System.out.println(CacheMsg.getCacheTopic(msg.getTopic()));
 		if(!CacheMsg.getCacheTopic(msg.getTopic())
-				|| CacheMsg.getSize(msg)%100==0) {
-			CacheMsg.setCacheTopic(msg.getTopic());
+//				|| CacheMsg.getSize(msg)%100==0 
+				) {
+			CacheMsg.addCacheTopic(msg.getTopic());
 			//注册队列信息
 			Command register = new Command();
 			register.setReqType(RequestType.BROKER);

@@ -4,6 +4,7 @@
 package org.one.broker.message;
 
 import java.util.List;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.one.remote.cmd.OneMessage;
 import org.one.remote.common.OneBroker;
 
+import com.one.store.BrokerTopicConfig;
+
 /**
  * @author yangkunguo
  *
@@ -24,7 +27,7 @@ public class CacheMsg {
 	/**
 	 * 缓存消息
 	 */
-	private static Map<String, Integer> cacheTopic = new ConcurrentHashMap<>(100);
+	private static Map<String, String> cacheTopic = new ConcurrentHashMap<>(100);
 
 	/**
 	 * topic , id,msg
@@ -89,10 +92,40 @@ public class CacheMsg {
 		return cacheTopic.get(topic)!=null?true:false;
 	}
 
-	public static void setCacheTopic(String topic) {
-		CacheMsg.cacheTopic.put(topic, 1);
+	/**添加队列
+	 * @param topic
+	 */
+	public static void addCacheTopic(String topic) {
+		CacheMsg.cacheTopic.put(topic, "1");
+		try {
+			BrokerTopicConfig.addTopic(topic);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 初始化队列
+	 */
+	public static void initCacheTopic() {
+		try {
+			CacheMsg.cacheTopic.putAll(BrokerTopicConfig.loadTopic());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
+	/**删除失效队列
+	 * @param topic
+	 */
+	public static void removeCacheTopic(String topic) {
+		CacheMsg.cacheTopic.remove(topic);
+		try {
+			BrokerTopicConfig.removeTopic(topic);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	/**返回队列下的消息
 	 * @param topic
 	 * @return

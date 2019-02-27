@@ -103,13 +103,21 @@ public class BrokerServerHandler extends RemotingServerHandler{
         		else if(reqtype == RequestType.MESSAGE) {
 //        			if("ok".equals(str))return;
 //        			System.out.println(DateUtils.formatDateTime(new Date())+"=="+str);
-        			handlers.get(reqtype).handler(packet, channelContext);//(channelContext, str);
+        			BrokerCahceMsgHandler handler=(BrokerCahceMsgHandler) handlers.get(reqtype);
+        			if(handler.getBrokerStore()==null)
+        				handler.setBrokerStore(brokerStore);
+        			
+        			handler.handler(packet, channelContext);//(channelContext, str);
         			msgcount.addAndGet(1);
         		}
         		//发送消息给消费者
         		else if(reqtype == RequestType.CONSUMMER) {
 //        			System.out.println("收到消息消费请求   "+DateUtils.formatDateTime(new Date()));
-        			handlers.get(reqtype).handler(packet, channelContext);
+        			ComsumerMsgHandler handler=(ComsumerMsgHandler) handlers.get(reqtype);
+        			if(handler.getBrokerStore()==null)
+        				handler.setBrokerStore(brokerStore);
+        			
+        			handler.handler(packet, channelContext);
         		}
         		//消费成功
         		else if(reqtype == RequestType.ASKOK) {

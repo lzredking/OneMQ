@@ -23,13 +23,21 @@ import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
 import org.tio.utils.json.Json;
 
+import com.one.store.BrokerStore;
+
 /**
  * @author yangkunguo
  *
  */
 public class BrokerCahceMsgHandler implements BrokerHandler{
 
+	private BrokerStore brokerStore;
 	
+//	public BrokerCahceMsgHandler(BrokerStore brokerStore) {
+//		super();
+//		this.brokerStore = brokerStore;
+//	}
+
 	public void handler(Packet packet, ChannelContext channelContext) throws Exception {
 		Command command = (Command) packet;
         byte[] body = command.getBody();
@@ -49,7 +57,9 @@ public class BrokerCahceMsgHandler implements BrokerHandler{
 			return;
 		}
 		CacheMsg.addCacheTopicMsg(msg);
-//		brokerStore.putMessage(msg);
+		
+		if(brokerStore!=null)
+			brokerStore.putMessage(msg);
 		
 		//检查是否注册过
 //		System.out.println(CacheMsg.getCacheTopic(msg.getTopic()));
@@ -80,6 +90,7 @@ public class BrokerCahceMsgHandler implements BrokerHandler{
 		send2Client(msg);
 	}
 	
+
 	/**收到消息后马来上推送空包
 	 * @param msg
 	 */
@@ -120,6 +131,14 @@ public class BrokerCahceMsgHandler implements BrokerHandler{
 		resppacket.setReqType(RequestType.MSG_CONFIRM);
 		resppacket.setBody(id.getBytes(Command.CHARSET));
 		Tio.send(channelContext, resppacket);
+	}
+
+	public BrokerStore getBrokerStore() {
+		return brokerStore;
+	}
+
+	public void setBrokerStore(BrokerStore brokerStore) {
+		this.brokerStore = brokerStore;
 	}
 	
 }

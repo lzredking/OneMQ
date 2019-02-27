@@ -81,7 +81,7 @@ public class ProducerDemo {
 						System.out.println("没收到事务消息数=="+SendCache.getSendMsgs().size());
 						long e=System.currentTimeMillis();
 						System.out.println("时间："+(e-s));
-						if((sendNum.get())>=1000000) {
+						if((sendNum.get())>=100000) {
 							break;
 						}
 					} catch (Exception e) {

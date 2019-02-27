@@ -48,7 +48,7 @@ public class MappedFile extends ReferenceResource{
 	private void init() {
 		try {
 			fileChannel=new RandomAccessFile(file, "rw").getChannel();
-			mappedByteBuffer=fileChannel.map(MapMode.READ_WRITE, 0, file.length());
+			mappedByteBuffer=fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -56,7 +56,11 @@ public class MappedFile extends ReferenceResource{
 		}
 	}
 	
-	public boolean appand(OneMessage message) {
+	/**返回-1说明文件已经写满
+	 * @param message
+	 * @return
+	 */
+	public long appand(OneMessage message) {
 		long currentPos = this.wrotePosition.get();
 		String msg=enCode(message)+"\n";
 		byte[] data=msg.getBytes(Charset.forName("UTF-8"));
@@ -71,9 +75,9 @@ public class MappedFile extends ReferenceResource{
 	            	e.printStackTrace();
 	            }
 	            this.wrotePosition.addAndGet(data.length);
-	            return true;
+	            return currentPos;
 	        }
-		return false;
+		return -1;
 	}
 	
 	public OneMessage read(MsgPosition position) {
@@ -85,15 +89,15 @@ public class MappedFile extends ReferenceResource{
 				if (this.hold()) {
 					ByteBuffer byteBuffer = this.mappedByteBuffer.slice();
 					byteBuffer.position(pos);
-					int size = readPosition - pos;
-					ByteBuffer byteBufferNew = byteBuffer.slice();
-					byteBufferNew.limit(size);
 					byte[] bytes = new byte[position.getLength()];
-					ByteBuffer byteBuffer2=byteBufferNew.get(bytes);
+					byteBuffer.get(bytes);
 					
 //					byte[] data=byteBuffer2.array();
 					return deCode(new String(bytes));
 				}
+			}else if((pos+position.getLength())>this.fileSize){
+				//到达文件末尾
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -224,5 +228,9 @@ public class MappedFile extends ReferenceResource{
 //	        TOTAL_MAPPED_FILES.decrementAndGet();
 //	        log.info("unmap file[REF:" + currentRef + "] " + this.fileName + " OK");
 	        return true;
+	}
+
+	public int getFileSize() {
+		return fileSize;
 	}
 }

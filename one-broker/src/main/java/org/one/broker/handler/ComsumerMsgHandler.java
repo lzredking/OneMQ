@@ -19,12 +19,16 @@ import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
 import org.tio.utils.json.Json;
 
+import com.one.store.BrokerStore;
+
 /**
  * @author yangkunguo
  *
  */
 public class ComsumerMsgHandler implements BrokerHandler{
 
+	private BrokerStore brokerStore;
+	
 	@Override
 	public void handler(Packet packet, ChannelContext channelContext) throws Exception {
 		Command command = (Command) packet;
@@ -62,11 +66,13 @@ public class ComsumerMsgHandler implements BrokerHandler{
     		}//else 
     		{//多条
 //    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic());
-    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic(),cons.getReadSize());
+//    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic(),cons.getReadSize());
+    			List<OneMessage> msgs=getBrokerStore().readMessage(cons.getTopic(), cons.getReadSize());
     			if(!msgs.isEmpty()) {
     				omsg.addAll(msgs);
     				ConsumerLog.addLogs(consumer, msgs);
-    				CacheMsg.removeCacheMsg(msgs);
+//    				CacheMsg.removeCacheMsg(msgs);
+    				getBrokerStore().removeMessage(cons.getTopic(), msgs);
 //    				synchronized (msgs) {
 //    					int size=0;
 //    					for(OneMessage msg:msgs) {
@@ -118,5 +124,13 @@ public class ComsumerMsgHandler implements BrokerHandler{
     	boolean ok=Tio.send(channelContext, resppacket);
 //    	System.out.println(ok);
 //    	isPush.set(false);
+	}
+
+	public BrokerStore getBrokerStore() {
+		return brokerStore;
+	}
+
+	public void setBrokerStore(BrokerStore brokerStore) {
+		this.brokerStore = brokerStore;
 	}
 }

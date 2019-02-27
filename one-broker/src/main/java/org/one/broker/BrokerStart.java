@@ -52,8 +52,8 @@ public class BrokerStart {
 	 */
 	public static void main(String[] args) {
 		try {
-//			brokerStore = new BrokerStore();
-//			brokerStore.start();
+			brokerStore = new BrokerStore();
+			brokerStore.start();
 			
 			ServerAioHandler aioHandler = new BrokerServerHandler(brokerStore);
 			ServerAioListener aioListener = new RemotingServerListener();

@@ -11,12 +11,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.one.remote.cmd.OneMessage;
+import org.tio.utils.json.Json;
 
 import com.one.store.common.MsgPosition;
 import com.one.store.file.MappedFile;
@@ -32,14 +37,15 @@ public class BrokerStore {
 	
 	private RandomAccessFile afile=null;
 	FileChannel fchan=null;
-	
+	//消息存储
 	private Map<String, MappedFile> mappedFile=new HashMap<>();
 	
-	private Map<String/*msgID*/, MsgPosition> msgMappedInfo=new ConcurrentHashMap<>(100000);
+	//消息索引位置信息
+	private Map<String,LinkedBlockingQueue<MsgPosition>> msgMappedInfo=new ConcurrentHashMap<>(100000);
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		long s=System.currentTimeMillis();
 		BrokerStore store=new BrokerStore();
 		String str="{\"clientName\":\"测试-1\",\"clientUrl\":\"127.0.0.1:6634\",\"queueName\":\"topic-1\"}";
@@ -49,7 +55,7 @@ public class BrokerStore {
 //			System.out.println(ops);
 		}
 		System.out.println(System.currentTimeMillis()-s);
-	}
+	}*/
 
 	public long testsaveMsg(String topic,String msg)  {
 		File file=new File(path);
@@ -120,22 +126,63 @@ public class BrokerStore {
 			mappedFile.put(msg.getTopic(), new MappedFile(file,1024*1024*100));
 		}
 		MappedFile mf=mappedFile.get(msg.getTopic());
-		if(mf.appand(msg)) {
-			msgMappedInfo.put(msg.get_id(), new MsgPosition(mf.getWrotePosition(), mf.enCode(msg).length()));
+		Long position=mf.appand(msg);
+		if(position!=-1) {
+			LinkedBlockingQueue<MsgPosition> indexs=msgMappedInfo.get(msg.getTopic());
+			if(indexs==null) {
+				indexs=new LinkedBlockingQueue<>();
+				msgMappedInfo.put(msg.getTopic(), indexs);
+			}
+			
+			try {
+				indexs.put(new MsgPosition(msg.get_id(),position, mf.enCode(msg).length()));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
+//		System.out.println(Json.toJson(msgMappedInfo));
 		mf.flush(mf.getWrotePosition());
 		return true;
 	}
 
-	public OneMessage readMessage(String topic,String id) {
+	private OneMessage readMessage(String topic,MsgPosition mp) {
 		MappedFile mf=mappedFile.get(topic);
-		OneMessage msg=mf.read(msgMappedInfo.get(id));
-		if(msg!=null) {
-			msgMappedInfo.remove(msg.get_id());
-		}
+		OneMessage msg=mf.read(mp);
+//		if(msg!=null) {
+//			msgMappedInfo.get(topic).remove(id);
+//		}
 		return msg;
 	}
-	public Map<String, MsgPosition> getMsgMappedInfo() {
-		return msgMappedInfo;
+	
+	public List<OneMessage> readMessage(String topic,int readSize) {
+		List<OneMessage> msgs=new ArrayList<>(readSize);
+		LinkedBlockingQueue<MsgPosition> indexs=msgMappedInfo.get(topic);
+		int i=0;
+		if(indexs==null)return msgs;
+//		List<String> ids=new ArrayList<>();
+//		for(Entry<String/*msgID*/, MsgPosition> ent:indexs..entrySet()) {
+		Iterator<MsgPosition> iterator=indexs.iterator();
+		while(iterator.hasNext()) {
+			OneMessage msg= readMessage( topic, iterator.next());
+			 if(msg!=null) {
+				 msgs.add(msg);
+			 }
+			i++;
+			if(i==readSize)break;
+		}
+
+		return msgs;
+	}
+//	public Map<String, MsgPosition> getMsgMappedInfo() {
+//		return msgMappedInfo;
+//	}
+	
+	public void removeMessage(String topic,List<OneMessage> ids) {
+		LinkedBlockingQueue<MsgPosition> indexs=msgMappedInfo.get(topic);
+		System.out.println("MsgPosition.size : "+indexs.size());
+		for(OneMessage id:ids) {
+			indexs.remove(new MsgPosition(id.get_id(),0L,0));
+		}
+		System.out.println("MsgPosition.size : "+indexs.size());
 	}
 }

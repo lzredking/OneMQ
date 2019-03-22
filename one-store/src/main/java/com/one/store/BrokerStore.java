@@ -147,6 +147,10 @@ public class BrokerStore {
 
 	private OneMessage readMessage(String topic,MsgPosition mp) {
 		MappedFile mf=mappedFile.get(topic);
+		//
+		if((mp.getPosition()+mp.getLength())>mf.getFileSize()) {
+			
+		}
 		OneMessage msg=mf.read(mp);
 //		if(msg!=null) {
 //			msgMappedInfo.get(topic).remove(id);
@@ -159,8 +163,6 @@ public class BrokerStore {
 		LinkedBlockingQueue<MsgPosition> indexs=msgMappedInfo.get(topic);
 		int i=0;
 		if(indexs==null)return msgs;
-//		List<String> ids=new ArrayList<>();
-//		for(Entry<String/*msgID*/, MsgPosition> ent:indexs..entrySet()) {
 		Iterator<MsgPosition> iterator=indexs.iterator();
 		while(iterator.hasNext()) {
 			OneMessage msg= readMessage( topic, iterator.next());

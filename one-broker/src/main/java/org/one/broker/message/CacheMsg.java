@@ -13,8 +13,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.one.broker.BrokerStart;
+import org.one.remote.cmd.Command;
 import org.one.remote.cmd.OneMessage;
 import org.one.remote.common.OneBroker;
+import org.one.remote.common.enums.RequestType;
+import org.tio.client.ClientChannelContext;
+import org.tio.core.Tio;
+import org.tio.utils.json.Json;
 
 import com.one.store.BrokerTopicConfig;
 
@@ -110,6 +116,19 @@ public class CacheMsg {
 	public static void initCacheTopic() {
 		try {
 			CacheMsg.cacheTopic.putAll(BrokerTopicConfig.loadTopic());
+			//
+			for(String topic :CacheMsg.cacheTopic.keySet()) {
+				
+				OneBroker broker=BrokerStart.getBroker();
+				broker.setQueueName(topic);
+				//注册队列信息
+				Command register = new Command();
+				register.setReqType(RequestType.BROKER);
+				register.setBody(Json.toJson(broker).getBytes(Command.CHARSET));
+				for(ClientChannelContext channel: BrokerStart.getRegistChannels()) {
+					Tio.send(channel, register);
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

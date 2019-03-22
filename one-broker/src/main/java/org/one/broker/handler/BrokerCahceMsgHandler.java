@@ -56,8 +56,9 @@ public class BrokerCahceMsgHandler implements BrokerHandler{
 			System.out.println(msg);
 			return;
 		}
-		CacheMsg.addCacheTopicMsg(msg);
-		
+		//内存存储
+//		CacheMsg.addCacheTopicMsg(msg);
+		//文件存储
 		if(brokerStore!=null)
 			brokerStore.putMessage(msg);
 		

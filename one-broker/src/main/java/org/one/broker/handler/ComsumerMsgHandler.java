@@ -66,7 +66,9 @@ public class ComsumerMsgHandler implements BrokerHandler{
     		}//else 
     		{//多条
 //    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic());
+    			//内存读取
 //    			List<OneMessage> msgs=CacheMsg.getCacheTopicMsg(cons.getTopic(),cons.getReadSize());
+    			//文件读取
     			List<OneMessage> msgs=getBrokerStore().readMessage(cons.getTopic(), cons.getReadSize());
     			if(!msgs.isEmpty()) {
     				omsg.addAll(msgs);
